@@ -6,14 +6,12 @@ This API will help you with easier development of Spigot plugins!
 
 Latest Stable Version: https://www.spigotmc.org/resources/advancedpluginapi.74683/
 
-You can leave the dependancy version to latest, as we will support backwards-compatibility!
-
 **Maven**
 ```xml
 <dependency>
     <groupId>me.ablax.decode</groupId>
     <artifactId>AdvancedPluginApi</artifactId>
-    <version>LATEST</version>
+    <version>1.0</version>
 </dependency>
 ```
 ```xml
