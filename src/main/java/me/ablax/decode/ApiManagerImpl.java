@@ -3,11 +3,11 @@ package me.ablax.decode;
 import com.google.common.reflect.ClassPath;
 import me.ablax.decode.annotation.AutoInject;
 import me.ablax.decode.annotation.Component;
+import me.ablax.decode.annotation.RegisterCommand;
 import me.ablax.decode.annotation.RegisterListener;
-import org.atteo.classindex.ClassIndex;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.IOException;
@@ -32,10 +32,13 @@ public class ApiManagerImpl {
         return instance;
     }
 
-    private void registerAllComponents(List<? extends Class<?>> claz) {
+    private void registerAllComponents(List<? extends Class<?>> allClasses) {
         try {
-            for (Class<?> aClass : ClassIndex.getAnnotated(Component.class)) {
-                registerComponent(aClass);
+            for (Class<?> aClass : allClasses) {
+                if (aClass.isAnnotationPresent(Component.class)) {
+                    registerComponent(aClass);
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -112,23 +115,50 @@ public class ApiManagerImpl {
         field.set(klass, components.get(type.getCanonicalName()));
     }
 
-    private void registerAllListeners(Object claz, List<? extends Class<?>> classesList) {
+    private void registerAllListeners(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
         try {
-            for (Class<?> aClass : ClassIndex.getAnnotated(RegisterListener.class)) {
-                registerListener(claz, aClass);
+            for (Class<?> aClass : classesList) {
+                if (aClass.isAnnotationPresent(RegisterListener.class)) {
+                    registerListener(javaPlugin, aClass);
+                }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void registerListener(Object claz, Class<?> aClass) {
+    private void registerAllCommands(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
+        try {
+            for (Class<?> aClass : classesList) {
+                if (aClass.isAnnotationPresent(RegisterCommand.class)) {
+                    registerCommand(javaPlugin, aClass);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void registerListener(JavaPlugin claz, Class<?> aClass) {
         if (components.containsKey(aClass.getCanonicalName())) {
-            Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), (Plugin) claz);
-        } else if (aClass.isAnnotationPresent(RegisterListener.class)) {
+            Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), claz);
+        } else {
             registerComponent(aClass);
             if (components.containsKey(aClass.getCanonicalName())) {
-                Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), (Plugin) claz);
+                Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), claz);
+            }
+        }
+    }
+
+    private void registerCommand(JavaPlugin plugin, Class<?> aClass) {
+        if (components.containsKey(aClass.getCanonicalName())) {
+            final RegisterCommand annotation = aClass.getAnnotation(RegisterCommand.class);
+            plugin.getCommand(annotation.commandName()).setExecutor((CommandExecutor) components.get(aClass.getCanonicalName()));
+        } else {
+            registerComponent(aClass);
+            if (components.containsKey(aClass.getCanonicalName())) {
+                final RegisterCommand annotation = aClass.getAnnotation(RegisterCommand.class);
+                plugin.getCommand(annotation.commandName()).setExecutor((CommandExecutor) components.get(aClass.getCanonicalName()));
             }
         }
     }
@@ -152,7 +182,7 @@ public class ApiManagerImpl {
         return classesList;
     }
 
-    public void register(JavaPlugin javaPlugin) {
+    void register(JavaPlugin javaPlugin) {
         final Class<? extends JavaPlugin> javaPluginClass = javaPlugin.getClass();
         components.put(javaPluginClass.getCanonicalName(), javaPlugin);
         populateInjectors(javaPlugin);
@@ -161,16 +191,11 @@ public class ApiManagerImpl {
         if (classesList != null) {
             registerAllComponents(classesList);
             registerAllListeners(javaPlugin, classesList);
+            registerAllCommands(javaPlugin, classesList);
         }
-
-        components.values().forEach(o -> {
-            if (o.getClass().isAnnotationPresent(RegisterListener.class)) {
-                registerListener(javaPlugin, o.getClass());
-            }
-        });
     }
 
-    public Object getComponent(Class<?> getObject) {
+    Object getComponent(Class<?> getObject) {
         if (!components.containsKey(getObject.getCanonicalName())
                 && getObject.isAnnotationPresent(Component.class)) {
             registerComponent(getObject);
