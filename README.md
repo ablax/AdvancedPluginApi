@@ -20,7 +20,7 @@ You can leave the dependancy version to latest, as we will support backwards-com
 <repository>
     <id>AdvancedPlugin</id>
     <name>AdvancedPluginApi</name>
-    <url>https://raw.githubusercontent.com/ablax/AdvancedPluginApi/repository/m</url>
+    <url>https://raw.githubusercontent.com/ablax/AdvancedPluginApi/repository/</url>
 </repository>
 
 ```
