@@ -1,5 +1,6 @@
 package me.ablax.decode;
 
+import com.google.common.reflect.ClassPath;
 import me.ablax.decode.annotation.AutoInject;
 import me.ablax.decode.annotation.Component;
 import me.ablax.decode.annotation.RegisterListener;
@@ -7,12 +8,16 @@ import org.atteo.classindex.ClassIndex;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ApiManagerImpl {
 
@@ -27,7 +32,7 @@ public class ApiManagerImpl {
         return instance;
     }
 
-    private void registerAllComponents(Class<?> claz) {
+    private void registerAllComponents(List<? extends Class<?>> claz) {
         try {
             for (Class<?> aClass : ClassIndex.getAnnotated(Component.class)) {
                 registerComponent(aClass);
@@ -107,7 +112,7 @@ public class ApiManagerImpl {
         field.set(klass, components.get(type.getCanonicalName()));
     }
 
-    private void registerAllListeners(Object claz) {
+    private void registerAllListeners(Object claz, List<? extends Class<?>> classesList) {
         try {
             for (Class<?> aClass : ClassIndex.getAnnotated(RegisterListener.class)) {
                 registerListener(claz, aClass);
@@ -128,21 +133,46 @@ public class ApiManagerImpl {
         }
     }
 
-    public void register(Object javaPlugin) {
-        components.put(javaPlugin.getClass().getCanonicalName(), javaPlugin);
-        populateInjectors(javaPlugin);
-        registerAllComponents(javaPlugin.getClass());
-        registerAllListeners(javaPlugin);
+    private List<? extends Class<?>> getClassesList(Class<? extends JavaPlugin> javaPluginClass) {
+        List<? extends Class<?>> classesList = null;
+        try {
+            final ClassPath path = ClassPath.from(javaPluginClass.getClassLoader());
+            classesList = path.getTopLevelClassesRecursive(javaPluginClass.getPackage().getName()).stream().map(classInfo -> {
+                try {
+                    return Class.forName(classInfo.getName(), true, javaPluginClass.getClassLoader());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }).collect(Collectors.toList());
 
-        components.values().forEach(o -> registerListener(javaPlugin, o.getClass()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return classesList;
     }
 
-    public Object get(Class<?> getObject) {
-        if (components.containsKey(getObject.getCanonicalName())) {
-            return components.get(getObject.getCanonicalName());
+    public void register(JavaPlugin javaPlugin) {
+        final Class<? extends JavaPlugin> javaPluginClass = javaPlugin.getClass();
+        components.put(javaPluginClass.getCanonicalName(), javaPlugin);
+        populateInjectors(javaPlugin);
+        List<? extends Class<?>> classesList = getClassesList(javaPluginClass);
+
+        if (classesList != null) {
+            registerAllComponents(classesList);
+            registerAllListeners(javaPlugin, classesList);
         }
 
-        if (getObject.isAnnotationPresent(Component.class)) {
+        components.values().forEach(o -> {
+            if (o.getClass().isAnnotationPresent(RegisterListener.class)) {
+                registerListener(javaPlugin, o.getClass());
+            }
+        });
+    }
+
+    public Object getComponent(Class<?> getObject) {
+        if (!components.containsKey(getObject.getCanonicalName())
+                && getObject.isAnnotationPresent(Component.class)) {
             registerComponent(getObject);
         }
 
