@@ -1,0 +1,6 @@
+name: ReportPlugin
+main: me.ablax.reportplugin.ReportPlugin
+version: 1.0.0
+depend: [AdvancedPluginApi]
+commands:
+  report:
