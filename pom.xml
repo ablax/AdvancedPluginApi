@@ -6,7 +6,7 @@
 
     <groupId>me.ablax.decode</groupId>
     <artifactId>AdvancedPluginApi</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2.0</version>
 
     <build>
         <plugins>
@@ -67,8 +67,13 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>28.1-jre</version>
-            <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.openjpa</groupId>
+            <artifactId>openjpa-jdbc</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
     </dependencies>
 
 
