@@ -22,6 +22,14 @@ class ComponentsManager {
 
     void registerAllComponents(List<? extends Class<?>> allClasses) {
         for (Class<?> aClass : allClasses) {
+            if (aClass.isInterface()) {
+                for (Class<?> tempImp : allClasses) {
+                    if (tempImp.isInstance(aClass) && tempImp.isAnnotationPresent(Component.class)) {
+                        registerComponent(tempImp);
+                        components.put(aClass.getCanonicalName(), components.get(tempImp.getCanonicalName()));
+                    }
+                }
+            }
             if (aClass.isAnnotationPresent(Component.class)) {
                 registerComponent(aClass);
             }
@@ -42,14 +50,11 @@ class ComponentsManager {
                 Object[] vars = new Object[parameterTypes.length];
                 for (int i = 0; i < parameterTypes.length; i++) {
                     Class<?> parameterType = parameterTypes[i];
-                    if (components.containsKey(parameterType.getCanonicalName())) {
-                        vars[i] = components.get(parameterType.getCanonicalName());
-                    } else if (parameterType.isAnnotationPresent(Component.class)) {
-                        registerComponent(parameterType);
-                        vars[i] = components.get(parameterType.getCanonicalName());
-                    } else {
+                    final Object resolved = resolveParameter(parameterType);
+                    if (resolved == null) {
                         throw new InstantiationException("I don't know what " + parameterType.getSimpleName() + " is to pass it on " + aClass.getSimpleName());
                     }
+                    vars[i] = resolved;
                 }
                 boolean isPrivate = Modifier.isPrivate(constructor.getModifiers());
                 if (isPrivate) {
@@ -65,6 +70,18 @@ class ComponentsManager {
             }
         }
         Bukkit.getLogger().severe("After trying all we can, we weren't able to instantiate " + aClass.getSimpleName() + " are you sure you have a nice friendly constructor?");
+    }
+
+    private Object resolveParameter(Class<?> parameterType) {
+        if (components.containsKey(parameterType.getCanonicalName())) {
+            return components.get(parameterType.getCanonicalName());
+        } else {
+            if (parameterType.isAnnotationPresent(Component.class)) {
+                registerComponent(parameterType);
+                return components.get(parameterType.getCanonicalName());
+            }
+            return null;
+        }
     }
 
     private List<Constructor<?>> getConstructors(Class<?> aClass) {
