@@ -11,7 +11,7 @@ Latest Stable Version: https://www.spigotmc.org/resources/advancedpluginapi.7468
 <dependency>
     <groupId>me.ablax.decode</groupId>
     <artifactId>AdvancedPluginApi</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <scope>provided</scope>
 </dependency>
 ```
