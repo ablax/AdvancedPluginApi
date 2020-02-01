@@ -14,6 +14,7 @@ import java.util.function.Function;
 class GuavaCacheImpl<GUAVAKEY, GUAVAVALUE> implements GuavaCache<GUAVAKEY, GUAVAVALUE> {
 
     private LoadingCache<GUAVAKEY, GUAVAVALUE> cache;
+    private boolean getAll = false;
 
     @Override
     public void init(Function<GUAVAKEY, GUAVAVALUE> loadFunction,
@@ -52,6 +53,8 @@ class GuavaCacheImpl<GUAVAKEY, GUAVAVALUE> implements GuavaCache<GUAVAKEY, GUAVA
             }
         };
 
+        getAll = true;
+
         cache = CacheBuilder.newBuilder().recordStats()
                 .maximumSize(maxSize)
                 .expireAfterAccess(expireAfter,
@@ -76,7 +79,19 @@ class GuavaCacheImpl<GUAVAKEY, GUAVAVALUE> implements GuavaCache<GUAVAKEY, GUAVA
 
     @Override
     public ImmutableMap<GUAVAKEY, GUAVAVALUE> loadAndGetAll(List<GUAVAKEY> pendingList) throws ExecutionException {
-        return cache.getAll(pendingList);
+        if (getAll) {
+            cache.getAll(pendingList);
+        }
+
+        pendingList.forEach(guavakey -> {
+            try {
+                cache.get(guavakey);
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        });
+
+        return cache.getAllPresent(pendingList);
     }
 
     @Override

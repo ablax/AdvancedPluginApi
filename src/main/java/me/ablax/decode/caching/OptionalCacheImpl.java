@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class OptionalCacheImpl<LASTROWKEY, LASTROWENT> implements OptionalCache<LASTROWKEY, LASTROWENT> {
+class OptionalCacheImpl<LASTROWKEY, LASTROWENT> implements OptionalCache<LASTROWKEY, LASTROWENT> {
 
     private final long maxSize;
     private final long expireAfter;

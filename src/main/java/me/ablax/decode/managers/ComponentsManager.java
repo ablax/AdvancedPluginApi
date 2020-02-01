@@ -36,9 +36,9 @@ class ComponentsManager {
 
     private void loadClass(Class<?> aClass) {
         final List<Constructor<?>> constructors = getConstructors(aClass);
-        for (Constructor<?> value : constructors) {
+        for (Constructor<?> constructor : constructors) {
             try {
-                Class<?>[] parameterTypes = value.getParameterTypes();
+                Class<?>[] parameterTypes = constructor.getParameterTypes();
                 Object[] vars = new Object[parameterTypes.length];
                 for (int i = 0; i < parameterTypes.length; i++) {
                     Class<?> parameterType = parameterTypes[i];
@@ -51,13 +51,13 @@ class ComponentsManager {
                         throw new InstantiationException("I don't know what " + parameterType.getSimpleName() + " is to pass it on " + aClass.getSimpleName());
                     }
                 }
-                boolean isPrivate = Modifier.isPrivate(value.getModifiers());
+                boolean isPrivate = Modifier.isPrivate(constructor.getModifiers());
                 if (isPrivate) {
-                    value.setAccessible(true);
+                    constructor.setAccessible(true);
                 }
-                components.put(aClass.getCanonicalName(), value.newInstance(vars));
+                components.put(aClass.getCanonicalName(), constructor.newInstance(vars));
                 if (isPrivate) {
-                    value.setAccessible(false);
+                    constructor.setAccessible(false);
                 }
                 return;
             } catch (IllegalAccessException | InstantiationException | InvocationTargetException ex) {
