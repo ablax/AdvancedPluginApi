@@ -9,7 +9,11 @@ public class CacheFactory {
     }
 
     public static OptionalCache buildOptionalCache(long maxSize, long expireAfter, TimeUnit expireAfterUnit) {
-        return new OptionalCacheImpl(maxSize, expireAfter, expireAfterUnit);
+        return new OptionalCacheImpl<>(maxSize, expireAfter, expireAfterUnit);
+    }
+
+    static GuavaCache buildGuavaCache() {
+        return new GuavaCacheImpl<>();
     }
 
 }

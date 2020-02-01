@@ -14,7 +14,7 @@ class OptionalCacheImpl<LASTROWKEY, LASTROWENT> implements OptionalCache<LASTROW
     private final long expireAfter;
     private final TimeUnit expireAfterUnit;
 
-    private GuavaCache<LASTROWKEY, Optional<LASTROWENT>> guavaCache = new GuavaCacheImpl<>();
+    private GuavaCache<LASTROWKEY, Optional<LASTROWENT>> guavaCache = CacheFactory.buildGuavaCache();
 
     public OptionalCacheImpl(long maxSize, long expireAfter, TimeUnit expireAfterUnit) {
         this.maxSize = maxSize;

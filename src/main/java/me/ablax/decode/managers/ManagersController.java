@@ -8,7 +8,7 @@ import java.util.Map;
 
 public class ManagersController {
 
-    private static Object instance = new Object();
+    private static ManagersController instance;
 
     private final ComponentsManager componentsManager;
     private final InjectorsManager injectorsManager;
@@ -16,11 +16,11 @@ public class ManagersController {
     private final CommandsManager commandsManager;
 
     public ManagersController(Map<String, Object> components) {
-        if (instance == null) {
+        if (instance != null) {
             Bukkit.getServer().shutdown();
             throw new SecurityException("This move is illegal!");
         }
-        instance = null;
+        instance = this;
         this.componentsManager = new ComponentsManager(components);
         this.injectorsManager = new InjectorsManager(components, componentsManager);
         this.listenersManager = new ListenersManager(components, componentsManager);

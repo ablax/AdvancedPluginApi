@@ -1,5 +1,6 @@
 package me.ablax.decode;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -14,6 +15,8 @@ public class AdvancedPlugin extends JavaPlugin {
             throw new SecurityException("This move is illegal!");
         }
         instance = new ApiManagerImpl();
+
+        new Metrics(this, 6389);
     }
 
     public void registerPlugin(JavaPlugin javaPlugin) {
