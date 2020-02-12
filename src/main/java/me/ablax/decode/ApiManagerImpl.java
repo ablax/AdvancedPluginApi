@@ -54,6 +54,7 @@ public class ApiManagerImpl {
 
         components.put(javaPluginClass.getCanonicalName(), javaPlugin);
         managersController.populateInjectors(javaPlugin);
+        managersController.populateValues(javaPlugin);
 
         List<? extends Class<?>> classesList = getClassesList(javaPluginClass);
 
@@ -61,6 +62,8 @@ public class ApiManagerImpl {
             managersController.registerAllComponents(classesList);
             managersController.registerAllListeners(javaPlugin, classesList);
             managersController.registerAllCommands(javaPlugin, classesList);
+            managersController.populateInjectors(classesList);
+            managersController.populateValues(javaPlugin, classesList);
         } else {
             Bukkit.getLogger().severe("I could't find any classes belonging to plugin: " + javaPlugin.getName());
         }

@@ -12,6 +12,7 @@ public class ManagersController {
 
     private final ComponentsManager componentsManager;
     private final InjectorsManager injectorsManager;
+    private final ValuesManager valuesManager;
     private final ListenersManager listenersManager;
     private final CommandsManager commandsManager;
 
@@ -23,6 +24,7 @@ public class ManagersController {
         instance = this;
         this.componentsManager = new ComponentsManager(components);
         this.injectorsManager = new InjectorsManager(components, componentsManager);
+        this.valuesManager = new ValuesManager(components);
         this.listenersManager = new ListenersManager(components, componentsManager);
         this.commandsManager = new CommandsManager(components, componentsManager);
     }
@@ -45,5 +47,25 @@ public class ManagersController {
 
     public void populateInjectors(JavaPlugin javaPlugin) {
         this.injectorsManager.populateInjectors(javaPlugin);
+    }
+
+    public void populateInjectors(List<? extends Class<?>> classesList) {
+        for (Class<?> clazz : classesList) {
+            if (componentsManager.containsClass(clazz)) {
+                this.injectorsManager.populateInjectors(componentsManager);
+            }
+        }
+    }
+
+    public void populateValues(JavaPlugin javaPlugin) {
+        this.valuesManager.populateValues(javaPlugin);
+    }
+
+    public void populateValues(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
+        for (Class<?> clazz : classesList) {
+            if (componentsManager.containsClass(clazz)) {
+                this.valuesManager.populateValues(javaPlugin, clazz);
+            }
+        }
     }
 }

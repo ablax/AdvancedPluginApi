@@ -20,6 +20,10 @@ class ComponentsManager {
         this.components = components;
     }
 
+    boolean containsClass(Class<?> clazz) {
+        return components.containsKey(clazz.getCanonicalName());
+    }
+
     void registerAllComponents(List<? extends Class<?>> allClasses) {
         for (Class<?> aClass : allClasses) {
             if (aClass.isInterface()) {
