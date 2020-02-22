@@ -18,21 +18,21 @@ class ListenersManager {
         this.componentsManager = componentsManager;
     }
 
-    void registerAllListeners(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
+    void registerAllListeners(List<? extends Class<?>> classesList) {
         for (Class<?> aClass : classesList) {
             if (aClass.isAnnotationPresent(RegisterListener.class)) {
-                registerListener(javaPlugin, aClass);
+                registerListener(JavaPlugin.getProvidingPlugin(aClass), aClass);
             }
         }
     }
 
-    private void registerListener(JavaPlugin claz, Class<?> aClass) {
+    private void registerListener(JavaPlugin plugin, Class<?> aClass) {
         if (components.containsKey(aClass.getCanonicalName())) {
-            Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), claz);
+            Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), plugin);
         } else {
             componentsManager.registerComponent(aClass);
             if (components.containsKey(aClass.getCanonicalName())) {
-                Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), claz);
+                Bukkit.getPluginManager().registerEvents((Listener) components.get(aClass.getCanonicalName()), plugin);
             }
         }
     }

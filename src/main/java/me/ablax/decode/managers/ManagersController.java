@@ -8,23 +8,23 @@ import java.util.Map;
 
 public class ManagersController {
 
-    private static ManagersController instance;
+    private static Object isInstantiated;
 
     private final ComponentsManager componentsManager;
     private final InjectorsManager injectorsManager;
-    private final ValuesManager valuesManager;
+    private final ConfigValuesManager configValuesManager;
     private final ListenersManager listenersManager;
     private final CommandsManager commandsManager;
 
     public ManagersController(Map<String, Object> components) {
-        if (instance != null) {
+        if (isInstantiated != null) {
             Bukkit.getServer().shutdown();
             throw new SecurityException("This move is illegal!");
         }
-        instance = this;
-        this.componentsManager = new ComponentsManager(components);
+        isInstantiated = new Object();
+        this.configValuesManager = new ConfigValuesManager(components);
+        this.componentsManager = new ComponentsManager(components, configValuesManager);
         this.injectorsManager = new InjectorsManager(components, componentsManager);
-        this.valuesManager = new ValuesManager(components);
         this.listenersManager = new ListenersManager(components, componentsManager);
         this.commandsManager = new CommandsManager(components, componentsManager);
     }
@@ -33,12 +33,12 @@ public class ManagersController {
         this.componentsManager.registerComponent(componentToRegister);
     }
 
-    public void registerAllCommands(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
-        this.commandsManager.registerAllCommands(javaPlugin, classesList);
+    public void registerAllCommands(List<? extends Class<?>> classesList) {
+        this.commandsManager.registerAllCommands(classesList);
     }
 
-    public void registerAllListeners(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
-        listenersManager.registerAllListeners(javaPlugin, classesList);
+    public void registerAllListeners(List<? extends Class<?>> classesList) {
+        listenersManager.registerAllListeners(classesList);
     }
 
     public void registerAllComponents(List<? extends Class<?>> classesList) {
@@ -52,19 +52,19 @@ public class ManagersController {
     public void populateInjectors(List<? extends Class<?>> classesList) {
         for (Class<?> clazz : classesList) {
             if (componentsManager.containsClass(clazz)) {
-                this.injectorsManager.populateInjectors(componentsManager);
+                this.injectorsManager.populateInjectors(clazz);
             }
         }
     }
 
     public void populateValues(JavaPlugin javaPlugin) {
-        this.valuesManager.populateValues(javaPlugin);
+        this.configValuesManager.populateValues(javaPlugin);
     }
 
-    public void populateValues(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
+    public void populateValues(List<? extends Class<?>> classesList) {
         for (Class<?> clazz : classesList) {
             if (componentsManager.containsClass(clazz)) {
-                this.valuesManager.populateValues(javaPlugin, clazz);
+                this.configValuesManager.populateValues(clazz);
             }
         }
     }

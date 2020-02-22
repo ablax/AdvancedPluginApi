@@ -7,9 +7,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Value {
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+public @interface ConfigValue {
 
-    String name();
+    String value();
 
 }

@@ -17,11 +17,11 @@ class CommandsManager {
         this.componentsManager = componentsManager;
     }
 
-    void registerAllCommands(JavaPlugin javaPlugin, List<? extends Class<?>> classesList) {
+    void registerAllCommands(List<? extends Class<?>> classesList) {
         try {
             for (Class<?> aClass : classesList) {
                 if (aClass.isAnnotationPresent(RegisterCommand.class)) {
-                    registerCommand(javaPlugin, aClass);
+                    registerCommand(JavaPlugin.getProvidingPlugin(aClass), aClass);
                 }
             }
         } catch (Exception e) {

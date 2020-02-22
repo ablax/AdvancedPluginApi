@@ -60,10 +60,10 @@ public class ApiManagerImpl {
 
         if (!classesList.isEmpty()) {
             managersController.registerAllComponents(classesList);
-            managersController.registerAllListeners(javaPlugin, classesList);
-            managersController.registerAllCommands(javaPlugin, classesList);
+            managersController.registerAllListeners(classesList);
+            managersController.registerAllCommands(classesList);
             managersController.populateInjectors(classesList);
-            managersController.populateValues(javaPlugin, classesList);
+            managersController.populateValues(classesList);
         } else {
             Bukkit.getLogger().severe("I could't find any classes belonging to plugin: " + javaPlugin.getName());
         }

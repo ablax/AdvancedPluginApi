@@ -1,22 +1,22 @@
 package me.ablax.decode.managers;
 
-import me.ablax.decode.annotation.Value;
+import me.ablax.decode.annotation.ConfigValue;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.Map;
 import java.util.logging.Level;
 
-class ValuesManager {
+class ConfigValuesManager {
 
     private final Map<String, Object> components;
     private sun.misc.Unsafe unsafe;
     private boolean useUnsafe = true;
 
-    ValuesManager(Map<String, Object> components) {
+    ConfigValuesManager(Map<String, Object> components) {
         try {
             Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
             field.setAccessible(true);
@@ -30,28 +30,34 @@ class ValuesManager {
         this.components = components;
     }
 
-    void populateValues(Object klass) {
-        for (Field field : klass.getClass().getDeclaredFields()) {
-            if (field.isAnnotationPresent(Value.class)) {
-                Class<?> type = field.getType();
-                final Value annotation = type.getAnnotation(Value.class);
-                if (klass instanceof Plugin) {
-                    final Object object = ((Plugin) klass).getConfig().get(annotation.name());
-                    populateField(klass, field, object);
-                }
+    void populateValues(JavaPlugin plugin) {
+        for (Field field : plugin.getClass().getDeclaredFields()) {
+            if (field.isAnnotationPresent(ConfigValue.class)) {
+                final ConfigValue annotation = field.getAnnotation(ConfigValue.class);
+                final Object object = plugin.getConfig().get(annotation.value());
+                populateField(plugin, field, object);
             }
         }
     }
 
-    public void populateValues(JavaPlugin javaPlugin, Class<?> clazz) {
+    public void populateValues(Class<?> clazz) {
+        final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(clazz);
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(Value.class)) {
-                Class<?> type = field.getType();
-                final Value annotation = type.getAnnotation(Value.class);
-                final Object object = javaPlugin.getConfig().get(annotation.name());
+            if (field.isAnnotationPresent(ConfigValue.class)) {
+                final ConfigValue annotation = field.getAnnotation(ConfigValue.class);
+                final Object object = plugin.getConfig().get(annotation.value());
                 populateField(components.get(clazz.getCanonicalName()), field, object);
             }
         }
+    }
+
+    public Object getValue(Class<?> parent, Parameter parameter) {
+        final JavaPlugin plugin = JavaPlugin.getProvidingPlugin(parent);
+        if (parameter.isAnnotationPresent(ConfigValue.class)) {
+            final ConfigValue annotation = parameter.getAnnotation(ConfigValue.class);
+            return plugin.getConfig().get(annotation.value());
+        }
+        return null;
     }
 
     private void populateField(Object klass, Field field, Object injectInstance) {
